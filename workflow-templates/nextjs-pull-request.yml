@@ -1,0 +1,63 @@
+name: Build and test NextJS app
+
+on:
+  pull_request:
+    branches: [default-branch]
+
+concurrency:
+  group: ci-pr-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # The content of the .env file needs to be ready before the build starts
+  create-env-file:
+    name: Create .env file
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    environment:
+      name: dev
+    steps:
+      - name: Create .env
+        # IMPORTANT: every key expected by the .env file has to be specified and loaded with the appropriate value
+        run: |-
+          touch .env
+
+          # echo APP_BASE_URL=${{ vars.APP_BASE_URL }} >> .env
+      - name: Save .env to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: env-file
+          path: .env
+          retention-days: 1
+  node-verify:
+    name: verify
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    needs: [create-env-file]
+    environment:
+      name: dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18.17.1
+          cache: "yarn"
+          cache-dependency-path: frontend/yarn.lock
+      - name: Install dependencies
+        run: yarn
+      - name: Retrieve .env from artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: env-file
+      - name: Check format
+        run: yarn lint
+      - name: Compile
+        run: yarn ts
+      - name: Build
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        run: yarn build
+      - name: Build Storybook
+        run: yarn build-storybook --quiet
+      - name: Run Tests
+        run: yarn test
+  
