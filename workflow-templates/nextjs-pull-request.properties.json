@@ -1,0 +1,8 @@
+{
+    "name": "NextJS App starter workflow",
+    "description": "The workflow builds (with respect to the .env file) and tests a NextJS app.",
+    "filePatterns": [
+        "package.json$",
+        ".*\\.md$"
+    ]
+}
