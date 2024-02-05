@@ -1,0 +1,9 @@
+{
+    "name": "NextJS App starter workflow: Build and Publish",
+    "description": "The workflow builds and publishes a NextJS app to Google Artifact Registry",
+    "filePatterns": [
+        "package.json$",
+        "^Dockerfile",
+        ".*\\.md$"
+    ]
+}
